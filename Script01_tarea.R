@@ -152,7 +152,7 @@ ggplot(data=peru_datos) +
 ggsave(filename = paste0(wd$outputs, "MapaEsperanzaVida.png"),
        width = 8.5, height = 11)
 
-# Grafica de esperanza de vida por departamento
+# Grafica de tasa de mortalidad sexo femenino
 ggplot(data=peru_datos) + 
   geom_sf(aes(fill = tasa_mujeres)) + theme_void() +
   scale_fill_distiller(palette = "Spectral") +  
@@ -160,7 +160,59 @@ ggplot(data=peru_datos) +
        caption = "Fuente de datos: SINADEF",
        x = "Longitud",
        y = "Latitud",
-       fill = "Edad") + 
+       fill = "Tasa mortalidad sexo femenino") + 
   geom_text_repel(mapping = aes(coords_x, coords_y, label = NOMBDEP), size = 2)
 ggsave(filename = paste0(wd$outputs, "MapaTasaMujeres.png"),
        width = 8.5, height = 11)
+
+
+#### Grafica de datos espaciales por departamento ####
+
+peru_anio_datos <- peru_sf %>%
+  left_join(cant_muertes_departamento_y_anio) %>%
+  left_join(promedio_edad_departamento_y_anio)
+
+# Grafica de muertes por cantidad de habitantes por departamento y año
+ggplot(data=peru_anio_datos) + 
+  geom_sf(aes(fill = muertes_pob)) + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +  
+  labs(title = "Muertes por cada 100,000 habitantes",
+       caption = "Fuente de datos: SINADEF",
+       x = "Longitud",
+       y = "Latitud",
+       fill = "Muertes sobre poblacion") +
+  facet_wrap(~ANIO) + 
+  geom_text_repel(mapping = aes(coords_x, coords_y, label = NOMBDEP), size = 2,
+                  max.overlaps = 100)
+ggsave(filename = paste0(wd$outputs, "MapaMuertesPorPoblacionAnio.png"),
+       width = 12, height = 12)
+
+# Grafica de esperanza de vida por departamento y año
+ggplot(data=peru_anio_datos %>% filter(ANIO > 2019)) + 
+  geom_sf(aes(fill = prom_edad)) + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +  
+  labs(title = "Esperanza de vida promedio",
+       caption = "Fuente de datos: SINADEF",
+       x = "Longitud",
+       y = "Latitud",
+       fill = "Edad") +
+  facet_wrap(~ANIO) + 
+  geom_text_repel(mapping = aes(coords_x, coords_y, label = NOMBDEP), size = 2,
+                  max.overlaps = 100)
+ggsave(filename = paste0(wd$outputs, "MapaEsperanzaVidaAnio.png"),
+       width = 12, height = 12)
+
+# Grafica de muertes por cantidad de habitantes por departamento y año
+ggplot(data=peru_anio_datos) + 
+  geom_sf(aes(fill = tasa_mujeres)) + theme_void() +
+  scale_fill_distiller(palette = "Spectral") +  
+  labs(title = "Tasa de fallecidos de sexo femenino",
+       caption = "Fuente de datos: SINADEF",
+       x = "Longitud",
+       y = "Latitud",
+       fill = "Tasa mortalidad sexo femenino") +
+  facet_wrap(~ANIO) + 
+  geom_text_repel(mapping = aes(coords_x, coords_y, label = NOMBDEP), size = 2,
+                  max.overlaps = 100)
+ggsave(filename = paste0(wd$outputs, "MapaTasaMortalidadSexoFemeninoAnio.png"),
+       width = 12, height = 12)
