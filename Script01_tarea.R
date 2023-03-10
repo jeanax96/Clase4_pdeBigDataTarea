@@ -42,7 +42,7 @@ colnames(cant_mujeres)[2] <- "cant_mujeres"
 
 # Conteo de hombres por departamento
 cant_hombres <- aggregate(SEXO ~ NOMBDEP, data = data, FUN = function(x) sum(x == "MASCULINO"))
-colnames(cant_hombres)[3] <- "cant_hombres"
+colnames(cant_hombres)[2] <- "cant_hombres"
 
 
 # Promedio de edad de defuncion
@@ -51,9 +51,10 @@ promedio_edad_por_departamento <- aggregate(EDAD ~ NOMBDEP, data = data %>% filt
 
 #### Separar los datos por departamento y año de defuncion ####
 
-cant_muertes_departamento_y_anio <- aggregate(INDEX ~ NOMBDEP + ANIO, data = data %>% filter(UNIDADES_EDAD == "ANIOS"), FUN = length)
+cant_muertes_departamento_y_anio <- aggregate(SEXO ~ NOMBDEP + ANIO, data = data, FUN = length)
+colnames(cant_muertes_departamento_y_anio)[3] <- "cant"
 promedio_edad_departamento_y_anio <- aggregate(EDAD ~ NOMBDEP + ANIO, data = data %>% filter(UNIDADES_EDAD == "ANIOS"), FUN = mean)
-
+colnames(promedio_edad_departamento_y_anio)[3] <- "prom_edad"
 
 # Separamos los datos por genero: FEMENINO
 datos_mujeres <- data[data$SEXO == "FEMENINO", ]
@@ -66,3 +67,30 @@ datos_hombres <- data[data$SEXO == "MASCULINO", ]
 
 # Contar cuántas mujeres hay por departamento y por año de defuncion
 hombres_por_departamento_y_anio <- aggregate(SEXO ~ NOMBDEP + ANIO, data = datos_hombres, FUN = length)
+
+#### Grafica muertes por año ####
+
+cant_muertes_departamento_y_anio %>%   
+  group_by(ANIO, NOMBDEP) %>% 
+  ggplot(aes(x = ANIO, y = cant/1000)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "Muertes por año", 
+       x = "Año", 
+       y = "Miles de muertes") +
+  facet_wrap(~NOMBDEP,scales = "free_y")
+ggsave(filename = paste0(wd$outputs, "Muertes_anio.png"),
+       width = 12, height = 12)
+
+#### Grafica edad promedio por año ####
+
+promedio_edad_departamento_y_anio %>%   
+  group_by(ANIO, NOMBDEP) %>% 
+  ggplot(aes(x = ANIO, y = prom_edad)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "Esperanza de vida promedio por año", 
+       x = "Año", 
+       y = "Edad (Años)") +
+  facet_wrap(~NOMBDEP,scales = "free_y")
+ggsave(filename = paste0(wd$outputs, "Esperanza_vida_anio.png"),
+       width = 12, height = 12)
+
